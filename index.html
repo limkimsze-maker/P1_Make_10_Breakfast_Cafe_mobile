@@ -1,0 +1,2294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Breakfast Café – Fill the Egg Tray</title>
+  <style>
+    :root{
+      --app-h:100vh;
+      --bg1:#f6ecdc;
+      --bg2:#ead7bb;
+      --panel:#fbf2e4;
+      --soft:#f4e6d1;
+      --ink:#284261;
+      --line:#597aa3;
+      --good:#1f7a2e;
+      --bad:#b42318;
+      --gold:#ffd76a;
+      --blue:#78b9ff;
+      --shadow:0 8px 22px rgba(60,102,150,.14);
+      --tray-size:min(100%, clamp(190px, 31dvh, 280px));
+      --avatar-size:clamp(90px, 14dvh, 126px);
+    }
+
+    *{box-sizing:border-box;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+    html,body{margin:0;min-height:100%;height:100%}
+    body,button,input,textarea,select,option,div,span,p,h1,h2,h3,h4,h5,h6,label{
+      font-family:"Comic Sans MS","Comic Neue","Trebuchet MS",cursive,sans-serif;
+    }
+
+    body{
+      min-height:100vh;
+      min-height:100svh;
+      min-height:var(--app-h);
+      background:linear-gradient(180deg,var(--bg1),var(--bg2));
+      color:var(--ink);
+      overflow:hidden;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+
+    button,input{font:inherit}
+
+    .cover{
+      min-height:100vh;
+      min-height:100svh;
+      min-height:var(--app-h);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+      background:linear-gradient(180deg,#17304c 0%, #1a4063 56%, #21527e 100%);
+    }
+    .cover.hidden{display:none}
+    .cover-card{
+      width:min(100%,520px);
+      background:linear-gradient(180deg,#fffefb,#ebf8ff);
+      border:4px solid var(--line);
+      border-radius:24px;
+      box-shadow:0 18px 40px rgba(0,0,0,.24);
+      padding:14px;
+      text-align:center;
+    }
+    .cover-art{
+      width:100%;
+      min-height:185px;
+      border-radius:18px;
+      border:4px solid var(--line);
+      background-image:url('images/kitchen_bg.png'), linear-gradient(180deg,#8fd1ff,#d7f4ff 62%, #fff9dc 100%);
+      background-size:cover, auto;
+      background-position:center, center;
+      background-blend-mode:soft-light, normal;
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      place-items:center;
+      margin-bottom:10px;
+    }
+    .cover-art::before,
+    .cover-art::after{
+      content:"";
+      position:absolute;
+      border-radius:50%;
+      background:rgba(255,255,255,.24);
+    }
+    .cover-art::before{width:170px;height:170px;left:-28px;top:-34px}
+    .cover-art::after{width:140px;height:140px;right:-18px;bottom:-26px}
+    .cover-row{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      flex-wrap:wrap;
+      padding:14px;
+      position:relative;
+      z-index:1;
+    }
+    .emoji-avatar{
+      width:96px;
+      height:96px;
+      border-radius:26px;
+      display:grid;
+      place-items:center;
+      font-size:52px;
+      border:4px solid var(--line);
+      box-shadow:0 8px 16px rgba(0,0,0,.12);
+      background:linear-gradient(180deg,#fffef6,#ffe9b4);
+      position:relative;
+      overflow:hidden;
+    }
+    .asset-avatar img,
+    .emoji-avatar img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
+    }
+    .emoji-fallback{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      font-size:inherit;
+      line-height:1;
+      pointer-events:none;
+    }
+    .cover-tray{
+      width:min(100%, 235px);
+      background:#d98e44;
+      border:4px solid #976034;
+      border-radius:22px;
+      padding:10px;
+      box-shadow:inset 0 0 0 3px rgba(255,255,255,.15);
+      display:grid;
+      place-items:center;
+    }
+    .cover-tray img{
+      width:100%;
+      height:auto;
+      display:block;
+      object-fit:contain;
+    }
+    .cover-tray-grid,
+    .egg-grid,
+    .mini-grid{
+      display:grid;
+      grid-template-columns:repeat(5, 1fr);
+      gap:8px;
+    }
+    .egg-slot,
+    .mini-slot{
+      aspect-ratio:1/1;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      border:2px solid rgba(78,49,22,.25);
+      background:#f0d1a9;
+      position:relative;
+      overflow:hidden;
+    }
+    .egg-slot.filled,
+    .mini-slot.filled,
+    .egg-slot.added,
+    .mini-slot.added{
+      background:linear-gradient(180deg,#fffef8,#ffeab2);
+    }
+    .egg-slot.blank,
+    .mini-slot.blank{
+      background:rgba(255,255,255,.25);
+      border-style:dashed;
+      color:#7c5f43;
+    }
+    .egg-slot.hidden-slot{
+      background:linear-gradient(180deg,#d5e6f7,#bcd6ef);
+      color:#476989;
+    }
+    .egg-slot::before,
+    .mini-slot::before{
+      font-size:clamp(18px, 4vw, 24px);
+    }
+    .egg-slot.filled::before,
+    .mini-slot.filled::before{content:"🥚"}
+    .egg-slot.added::before,
+    .mini-slot.added::before{content:"🥚"}
+    .egg-slot.blank::before,
+    .mini-slot.blank::before{content:"＋"}
+    .egg-slot.hidden-slot::before{content:"?"}
+    .ten-badge{
+      position:absolute;
+      inset:auto 12px 12px auto;
+      padding:8px 12px;
+      border-radius:999px;
+      border:3px solid var(--line);
+      background:#fffef8;
+      font-size:15px;
+      font-weight:900;
+      color:var(--ink);
+      z-index:1;
+    }
+    .cover-title{
+      font-size:clamp(1.55rem, 7vw, 2rem);
+      font-weight:900;
+      color:#24527e;
+      margin:0;
+    }
+    .cover-sub{
+      margin:4px 0 10px;
+      font-size:clamp(.92rem, 3.8vw, 1rem);
+      font-weight:900;
+    }
+    .cover-note{
+      background:#f6fcff;
+      border:3px solid var(--line);
+      border-radius:16px;
+      padding:10px 12px;
+      font-size:13px;
+      font-weight:800;
+      line-height:1.32;
+      text-align:left;
+    }
+    .cover-name{
+      width:100%;
+      margin-top:12px;
+      padding:12px 14px;
+      font-size:18px;
+      border:3px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      color:var(--ink);
+    }
+    .cover-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+    .start-btn{
+      min-width:220px;
+      padding:12px 18px;
+      border:3px solid var(--line);
+      border-radius:999px;
+      background:linear-gradient(180deg,#ffe58a,#ffc85c);
+      color:var(--ink);
+      font-size:20px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .app{
+      height:var(--app-h);
+      max-height:var(--app-h);
+      width:min(100%,560px);
+      margin:0 auto;
+      padding:max(4px, env(safe-area-inset-top)) 8px max(4px, env(safe-area-inset-bottom));
+      display:none;
+      flex-direction:column;
+      gap:4px;
+      overflow:hidden;
+    }
+    .app.show{display:flex}
+
+    .topbar,
+    .tickets-wrap,
+    .progress-wrap,
+    .feedback,
+    .frame{
+      background:rgba(251,242,228,.96);
+      border:3px solid var(--line);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+    }
+    .topbar{padding:5px 6px;backdrop-filter:blur(4px);flex:0 0 auto;position:relative;z-index:20;background:rgba(247,235,217,.98)}
+    .top-title-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .title-wrap{min-width:0}
+    .title{font-size:clamp(1.05rem, 4vw, 1.28rem);font-weight:900;line-height:1;color:#24527e}
+    .sub{font-size:clamp(8px, 2vw, 9px);font-weight:800;opacity:.85;margin-top:1px;line-height:1.05}
+    .top-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+    .mini-btn{
+      border:2px solid var(--line);
+      border-radius:999px;
+      background:#f4e7d4;
+      color:var(--ink);
+      font-size:10px;
+      font-weight:900;
+      padding:5px 9px;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .stats-row{margin-top:4px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px}
+    .stat{
+      background:#f6ead8;
+      border:2px solid var(--line);
+      border-radius:10px;
+      text-align:center;
+      padding:3px 2px;
+      font-size:8px;
+      font-weight:900;
+      line-height:1.02;
+    }
+    .stat .value{display:block;font-size:10px;margin-top:1px}
+
+    .tickets-wrap,
+    .progress-wrap{flex:0 0 auto;padding:5px 8px}
+    .section-label{text-align:center;font-size:10px;font-weight:900;margin-bottom:3px}
+    .tickets{display:flex;justify-content:center;gap:4px;flex-wrap:wrap;min-height:22px}
+    .ticket{
+      width:22px;
+      height:22px;
+      border:2px solid var(--line);
+      border-radius:8px;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:10px;
+      font-weight:900;
+    }
+    .ticket.pending{background:#fbf2e4}
+    .ticket.correct{background:#dff7df;color:var(--good)}
+    .ticket.retry{background:#fff2cf;color:#9a6500}
+    .ticket.current{outline:3px solid rgba(120,185,255,.45)}
+
+    .progress-bar{width:100%;height:9px;background:#eadcc7;border:2px solid var(--line);border-radius:999px;overflow:hidden}
+    .progress-fill{width:0%;height:100%;background:linear-gradient(90deg,#7db9ff,#ffd56c,#7fd28b);border-radius:999px;transition:width .25s ease}
+
+    .story-nav{flex:0 0 auto;display:flex;justify-content:center;gap:6px;flex-wrap:nowrap}
+    .story-pill{
+      flex:1 1 0;
+      border:2px solid var(--line);
+      border-radius:999px;
+      background:#fffaf0;
+      color:var(--ink);
+      font-size:11px;
+      font-weight:900;
+      padding:6px 4px;
+      cursor:pointer;
+    }
+    .story-pill.active{background:#eadcc7}
+
+    .frame{display:none;flex:1 1 auto;min-height:0;padding:8px;overflow:hidden}
+    .frame.active{display:flex;flex-direction:column;justify-content:flex-start}
+    .frame-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;flex:0 0 auto}
+    .frame-title{flex:1 1 auto;text-align:center;font-size:14px;font-weight:900;margin:0}
+    .frame-info-mini{
+      flex:0 0 auto;
+      min-width:auto;
+      padding:5px 10px;
+      border:2px solid var(--line);
+      border-radius:999px;
+      background:#fff4c7;
+      color:var(--ink);
+      font-size:10px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .frame-main{flex:1 1 auto;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:stretch;gap:8px}
+    .frame-main.tight{gap:6px}
+    .card{
+      width:100%;
+      background:rgba(251,242,228,.96);
+      border:3px solid var(--line);
+      border-radius:14px;
+      padding:10px 8px;
+      text-align:center;
+      box-shadow:0 4px 0 rgba(60,102,150,.08);
+      margin-bottom:0;
+    }
+    .tag{
+      display:inline-flex;
+      justify-content:center;
+      align-items:center;
+      gap:5px;
+      min-height:28px;
+      padding:4px 10px;
+      border:2px solid var(--line);
+      border-radius:999px;
+      background:#fff7e8;
+      font-weight:900;
+      font-size:11px;
+      margin:0 auto 2px;
+      text-align:center;
+    }
+    .dialogue,.bubble,.note{font-size:11px;font-weight:800;line-height:1.2}
+    .dialogue{color:#40678f;min-height:14px;margin-bottom:3px}
+    .order-line{font-size:13px;font-weight:800}
+    .help-line{margin-top:4px;font-size:11px;font-weight:800;color:#476989}
+    .note{width:100%;background:#f4e6d1;border:2px dashed var(--line);border-radius:12px;padding:8px}
+    .bubble{
+      min-height:82px;
+      display:block;
+      text-align:center;
+      padding:12px 14px;
+      transition:.2s ease;
+    }
+    .bubble-copy{
+      min-height:100%;
+      display:grid;
+      align-content:center;
+      justify-items:center;
+      gap:6px;
+    }
+    .bubble-line{
+      max-width:100%;
+      line-height:1.35;
+      white-space:normal;
+      word-break:normal;
+      overflow-wrap:anywhere;
+    }
+    .bubble-equation{
+      font-size:1.05em;
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .bubble.good{background:#e7f8ea;border-color:#1f7a2e;color:#1f5f29;box-shadow:0 0 0 4px rgba(31,122,46,.12)}
+    .bubble.bad{background:#ffe6e0;border-color:#b42318;color:#8f1e15;box-shadow:0 0 0 4px rgba(180,35,24,.12)}
+
+    .avatar-wrap{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;overflow:hidden}
+    .avatar-box{
+      width:var(--avatar-size);
+      height:var(--avatar-size);
+      border-radius:28px;
+      background:linear-gradient(180deg,#fffef7,#ffe8ad);
+      border:4px solid var(--line);
+      display:grid;
+      place-items:center;
+      font-size:clamp(42px, 8vw, 60px);
+      box-shadow:0 8px 16px rgba(0,0,0,.1);
+      position:relative;
+      overflow:hidden;
+    }
+    .avatar-box.farmer{background:linear-gradient(180deg,#fffef7,#ccefb8)}
+    .avatar-box.customer{background:linear-gradient(180deg,#fffef7,#ffd9bd)}
+
+    #frame1 .frame-main{
+      display:grid;
+      grid-template-rows:minmax(0,1fr) auto;
+      gap:6px;
+      align-items:stretch;
+      background-image:url('images/kitchen_bg.png');
+      background-size:cover;
+      background-position:center;
+      border-radius:14px;
+      padding:8px;
+    }
+    #frame1 .queue-strip{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:6px;
+      width:100%;
+    }
+    .queue-card{
+      padding:8px 6px;
+      border:2px solid var(--line);
+      border-radius:12px;
+      background:#fffaf0;
+      font-size:10px;
+      font-weight:900;
+      line-height:1.2;
+      text-align:center;
+      min-height:56px;
+      display:grid;
+      align-content:center;
+      box-shadow:0 3px 0 rgba(60,102,150,.08);
+    }
+    .queue-card strong{display:block;margin-bottom:2px}
+    .queue-card.active{background:#dff0ff}
+    .big-equation{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      font-size:clamp(1.3rem, 6vw, 2rem);
+      font-weight:900;
+      color:#24527e;
+    }
+    .equation-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:60px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:3px solid var(--line);
+      background:#fffef8;
+      box-shadow:0 4px 0 rgba(60,102,150,.08);
+    }
+
+    #frame2 .frame-main{
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr) auto auto;
+      gap:6px;
+      align-items:stretch;
+      background-image:url('images/kitchen_bg.png');
+      background-size:cover;
+      background-position:center;
+      border-radius:14px;
+      padding:8px;
+    }
+    .frame2-reminder{padding:8px 6px;flex:0 0 auto;width:100%}
+    .play-stage{
+      flex:1 1 auto;
+      min-height:0;
+      width:min(100%, 300px);
+      height:min(100%, 300px);
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+    }
+    .tray-wrap{
+      width:var(--tray-size);
+      max-width:100%;
+      background:linear-gradient(180deg,#d79657,#bf7c3f);
+      border:8px solid #8f5a2e;
+      border-radius:28px;
+      padding:12px;
+      box-shadow:inset 0 0 0 4px rgba(255,255,255,.12), 0 10px 18px rgba(0,0,0,.12);
+    }
+    .egg-grid{gap:9px}
+    .egg-slot{border-radius:16px}
+    .egg-slot.added{background:linear-gradient(180deg,#eef7ff,#beddff)}
+    .egg-slot.added::before{filter:saturate(1.1)}
+    .memory-banner,
+    .mental-card{
+      width:min(100%, 280px);
+      padding:12px;
+      border-radius:22px;
+      border:4px solid var(--line);
+      background:linear-gradient(180deg,#fffef7,#eef8ff);
+      text-align:center;
+      box-shadow:0 10px 18px rgba(0,0,0,.1);
+    }
+    .memory-banner{font-size:clamp(1.05rem, 4vw, 1.25rem);font-weight:900;color:#24527e}
+    .memory-banner .small{display:block;font-size:13px;margin-top:6px}
+    .mental-card .sum{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:nowrap;
+      font-size:clamp(1.9rem, 10vw, 3rem);
+      font-weight:900;
+      color:#24527e;
+      line-height:1;
+      white-space:nowrap;
+    }
+    .mental-card .sum-part{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .hint-panel{
+      display:none;
+      width:100%;
+      background:#fff8e8;
+      border:3px dashed var(--line);
+      border-radius:14px;
+      padding:8px;
+      text-align:center;
+      font-weight:900;
+    }
+    .hint-panel.show{display:block}
+
+    .frame2-dock{
+      position:sticky;
+      bottom:0;
+      z-index:8;
+      width:100%;
+      background:rgba(247,235,217,.98);
+      border:2px solid var(--line);
+      border-radius:16px;
+      box-shadow:0 6px 14px rgba(60,102,150,.12);
+      padding:6px;
+      display:grid;
+      grid-template-columns:92px 1fr;
+      gap:8px;
+      align-items:center;
+    }
+    .preview-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%}
+    .mini-tray{
+      width:min(100%, 86px);
+      background:linear-gradient(180deg,#d79657,#bf7c3f);
+      border:4px solid #8f5a2e;
+      border-radius:16px;
+      padding:6px;
+    }
+    .mini-grid{gap:4px}
+    .mini-slot{border-radius:8px}
+    .preview-text{font-size:9px;font-weight:900;line-height:1.05;text-align:center}
+    .controls-stack{display:grid;gap:6px;align-content:center}
+    .answer-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+    .answer-grid.many{grid-template-columns:repeat(6,minmax(0,1fr))}
+    .answer-btn.small{font-size:12px;padding:8px 2px}
+    .utility-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+    .game-btn{
+      width:100%;
+      min-width:0;
+      padding:8px 6px;
+      border:3px solid var(--line);
+      border-radius:999px;
+      cursor:pointer;
+      background:#fff7e8;
+      font-size:10px;
+      font-weight:900;
+      color:var(--ink);
+    }
+    .answer-btn{font-size:14px;padding:10px 4px;background:#f0f8ff}
+    .answer-btn.selected{background:#cde7ff}
+    .game-btn:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.12)}
+    .btn-check{background:#dff7df}
+    .btn-clear{background:#ffe6cc}
+    .btn-next{background:#ece4ff}
+    .btn-hint{background:#fff4c7}
+
+    #frame3 .frame-main{
+      flex:1 1 auto;
+      justify-content:space-evenly;
+      background-image:url('images/kitchen_bg.png');
+      background-size:cover;
+      background-position:center;
+      border-radius:14px;
+      padding:8px;
+    }
+    .reward-image{
+      width:96px;
+      height:96px;
+      margin:2px auto 10px;
+      display:none;
+      object-fit:contain;
+    }
+    .secret-easter{
+      display:none;
+      margin:0 auto 14px;
+      padding:12px;
+      background:linear-gradient(180deg,#fff7dc,#fffef7);
+      border:3px solid var(--line);
+      border-radius:20px;
+      text-align:center;
+    }
+    .secret-easter.show{display:block}
+    .secret-title{font-size:18px;font-weight:900;color:#24527e;margin-bottom:8px;line-height:1.2}
+    .secret-image-wrap{
+      width:min(100%, 240px);
+      min-height:190px;
+      margin:0 auto 8px;
+      padding:12px;
+      border:3px solid var(--line);
+      border-radius:18px;
+      background:#fffef7;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      overflow:visible;
+    }
+    .secret-image-wrap img{
+      width:100%;
+      max-width:100%;
+      max-height:160px;
+      height:auto;
+      object-fit:contain;
+      object-position:center;
+      display:block;
+      margin:0 auto;
+    }
+    .secret-copy{font-size:14px;font-weight:800;line-height:1.3;margin-top:6px}
+    .delivery-track{
+      width:100%;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr) 24px minmax(0,1fr);
+      align-items:center;
+      gap:4px;
+    }
+    .delivery-stop{
+      background:#fffef7;
+      border:3px solid var(--line);
+      border-radius:18px;
+      padding:10px 6px;
+      text-align:center;
+      font-weight:900;
+      box-shadow:0 4px 0 rgba(60,102,150,.08);
+    }
+    .delivery-stop .icon{display:block;font-size:30px;line-height:1;margin-bottom:4px}
+    .delivery-stop img.stop-art{
+      width:50px;
+      height:50px;
+      object-fit:contain;
+      display:block;
+      margin:0 auto 4px;
+    }
+    .delivery-stop .stop-fallback{
+      width:50px;
+      height:50px;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      margin:0 auto 4px;
+      font-size:30px;
+      line-height:1;
+    }
+    .delivery-stop .label{display:block;font-size:10px;line-height:1.05}
+    .delivery-arrow{text-align:center;font-size:20px;font-weight:900;color:#698cb8}
+    .delivery-track.success .delivery-stop{animation:pop .55s ease both}
+    .delivery-track.success .delivery-arrow{animation:glow 1s ease infinite alternate}
+    .delivery-track.fail .delivery-stop{opacity:.88}
+    @keyframes pop{0%{transform:scale(.92)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+    @keyframes glow{from{color:#698cb8}to{color:#ffb342}}
+
+    .story-cta{flex:0 0 auto;display:flex;justify-content:center;gap:8px;flex-wrap:nowrap}
+    .story-cta .game-btn{flex:1 1 0;min-width:0}
+    .feedback{flex:0 0 auto;min-height:40px;padding:8px 10px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;font-weight:900;line-height:1.2;background:rgba(247,235,217,.98)}
+    .feedback.good{color:var(--good)}
+    .feedback.bad{color:var(--bad)}
+    .footer{flex:0 0 auto;text-align:center;font-size:9px;font-weight:900;opacity:.8;padding-bottom:2px}
+
+    .modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:14px;
+      background:rgba(30,54,82,.45);
+      z-index:100;
+    }
+    .modal.show{display:flex}
+    .modal-card{
+      width:min(100%,520px);
+      max-height:88vh;
+      overflow:auto;
+      background:linear-gradient(180deg,#fffef9,#eef8ff);
+      border:4px solid var(--line);
+      border-radius:24px;
+      box-shadow:0 18px 40px rgba(0,0,0,.22);
+      padding:16px 14px;
+      text-align:center;
+    }
+    .modal-title{font-size:24px;font-weight:900;color:#24527e;margin-bottom:8px}
+    .modal-badge{display:inline-block;padding:10px 16px;border-radius:999px;border:3px solid var(--line);background:#fff9dd;font-size:18px;font-weight:900;margin:8px 0 12px}
+    .modal-line{font-size:16px;font-weight:800;line-height:1.3;margin-bottom:10px}
+    .report{width:100%;margin:0 auto 14px;background:#fffef7;border:3px solid var(--line);border-radius:18px;padding:12px 14px;text-align:left;font-size:15px;font-weight:800;line-height:1.4}
+    .modal-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+    .achievement-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+    .achievement-chip{padding:8px 12px;border-radius:999px;border:3px solid var(--line);background:#fff8d9;font-size:14px;font-weight:900}
+    .achievement-chip.locked{opacity:.5;background:#eef3f7}
+
+    .confetti-layer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:140}
+    .confetti-piece{position:fixed;top:-30px;border-radius:3px;opacity:.95;animation-name:confettiFall;animation-timing-function:linear;animation-fill-mode:forwards}
+    @keyframes confettiFall{0%{transform:translateY(-30px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:1}}
+
+    @media (max-width: 430px){
+      .app{padding:max(4px, env(safe-area-inset-top)) 6px max(4px, env(safe-area-inset-bottom));gap:4px}
+      .topbar,.tickets-wrap,.progress-wrap,.frame,.feedback{border-width:2px;border-radius:14px}
+      .topbar{padding:4px 5px}
+      .title{font-size:.9rem}
+      .sub{font-size:7px}
+      .mini-btn{font-size:8px;padding:4px 7px;border-width:2px}
+      .stats-row{gap:2px}
+      .stat{font-size:7px;padding:2px 1px;border-width:2px;border-radius:9px}
+      .stat .value{font-size:9px}
+      .tickets-wrap,.progress-wrap{padding:4px 6px}
+      .section-label{font-size:9px;margin-bottom:2px}
+      .ticket{width:18px;height:18px;font-size:9px;border-width:2px}
+      .story-nav{gap:4px}
+      .story-pill{font-size:9px;padding:5px 3px;border-width:2px}
+      .frame{padding:5px}
+      .frame-title{font-size:11px}
+      .frame-info-mini{font-size:8px;padding:4px 8px;border-width:2px}
+      .frame-main{gap:5px}
+      .card{padding:6px 5px;border-width:2px;border-radius:12px}
+      .tag{font-size:10px;min-height:22px;padding:3px 8px;border-width:2px}
+      .dialogue,.bubble,.note,.help-line,.feedback{font-size:9px}
+      .bubble{min-height:60px;padding:8px 10px}
+      .bubble-copy{gap:4px}
+      .bubble-line{line-height:1.28}
+      .bubble-equation{font-size:1em}
+      .note{padding:6px}
+      .queue-card{font-size:9px}
+      .big-equation{font-size:1.25rem;gap:7px}
+      .equation-badge{min-width:50px;padding:8px 9px;border-width:2px}
+      .play-stage{width:min(100%, 220px);height:min(100%, 220px)}
+      .tray-wrap{border-width:6px;padding:9px;border-radius:20px}
+      .egg-grid{gap:6px}
+      .egg-slot{border-radius:12px}
+      .frame2-dock{padding:4px;gap:5px;grid-template-columns:74px 1fr;border-radius:12px}
+      .mini-tray{width:62px;border-width:3px;padding:4px}
+      .preview-text{font-size:7px}
+      .answer-grid,.utility-grid{gap:4px}
+      .answer-btn{font-size:11px;padding:7px 2px;border-width:2px}
+      .game-btn{font-size:8px;padding:6px 4px;border-width:2px}
+      .delivery-track{grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr) 18px minmax(0,1fr)}
+      .delivery-stop{padding:7px 4px;border-width:2px;border-radius:14px}
+      .delivery-stop .icon{font-size:22px}
+      .delivery-stop .label{font-size:8px}
+      .delivery-arrow{font-size:16px}
+      .feedback{min-height:30px;padding:5px 6px}
+      .footer{font-size:7px;padding-bottom:0}
+      .cover-card{padding:10px}
+      .cover-art{min-height:150px;margin-bottom:8px}
+      .emoji-avatar{width:72px;height:72px;font-size:40px;border-width:3px}
+      .cover-tray{width:180px;padding:7px;border-width:3px}
+      .cover-tray-grid{gap:5px}
+      .cover-title{font-size:1.38rem}
+      .cover-sub{font-size:.85rem;margin:2px 0 8px}
+      .cover-note{font-size:11px;padding:8px 10px}
+      .cover-name{margin-top:10px;padding:10px 12px;font-size:16px}
+      .start-btn{min-width:180px;padding:10px 14px;font-size:17px}
+    }
+
+    @media (min-width: 431px) and (max-width: 900px) and (pointer: coarse){
+      .frame2-dock{grid-template-columns:80px 1fr}
+      .answer-btn{font-size:12px}
+      .game-btn{font-size:8px}
+    }
+
+    @media (max-height: 780px) and (pointer: coarse){
+      .app{gap:3px;padding:max(2px, env(safe-area-inset-top)) 5px max(2px, env(safe-area-inset-bottom))}
+      .topbar,.tickets-wrap,.progress-wrap,.frame,.feedback{border-width:2px;border-radius:12px}
+      .topbar{padding:3px 4px}
+      .title{font-size:.85rem}
+      .sub{font-size:7px}
+      .stats-row{gap:2px}
+      .stat{font-size:7px;padding:2px 1px}
+      .stat .value{font-size:8px}
+      .tickets-wrap,.progress-wrap{padding:3px 5px}
+      .section-label{font-size:8px;margin-bottom:1px}
+      .ticket{width:16px;height:16px;font-size:8px}
+      .story-pill{font-size:8px;padding:4px 2px}
+      .frame{padding:4px}
+      .frame-title{font-size:10px}
+      .card{padding:5px 4px}
+      .dialogue,.bubble,.note,.help-line,.feedback{font-size:8px;line-height:1.1}
+      .bubble{min-height:52px;padding:7px 8px}
+      .bubble-copy{gap:3px}
+      .bubble-line{line-height:1.22}
+      .bubble-equation{font-size:.98em}
+      .queue-card{font-size:8px;padding:4px 3px}
+      .play-stage{width:min(100%, 180px);height:min(100%, 180px)}
+      .tray-wrap{padding:8px;border-width:6px}
+      .egg-grid{gap:5px}
+      .frame2-dock{grid-template-columns:64px 1fr;gap:4px;padding:3px}
+      .mini-tray{width:54px;padding:3px}
+      .preview-text{font-size:6px}
+      .answer-grid,.utility-grid{gap:3px}
+      .answer-btn{font-size:10px;padding:5px 1px}
+      .game-btn{font-size:7px;padding:5px 3px;border-width:2px}
+      .feedback{min-height:26px;padding:4px 5px}
+      .footer{font-size:6px;padding-bottom:0}
+    }
+  </style>
+</head>
+<body>
+  <div class="cover" id="coverScreen">
+    <div class="cover-card">
+      <div class="cover-art" id="coverArt">
+        <div class="cover-row">
+          <div class="emoji-avatar asset-avatar">
+            <img id="coverChefImg" src="chef_neutral.png" alt="Chef neutral">
+            <span class="emoji-fallback" id="coverChefFallback" style="display:none">👩‍🍳</span>
+          </div>
+          <div class="cover-tray">
+            <img id="coverTrayImg" src="egg_tray_full.png" alt="Full egg tray">
+          </div>
+          <div class="emoji-avatar asset-avatar">
+            <img id="coverFarmerImg" src="farmer_neutral.png" alt="Farmer neutral">
+            <span class="emoji-fallback" id="coverFarmerFallback" style="display:none">🧑‍🌾</span>
+          </div>
+        </div>
+        <div class="ten-badge">Make 10!</div>
+      </div>
+      <h1 class="cover-title">Breakfast Café – Fill the Egg Tray</h1>
+      <div class="cover-sub">Mobile Story Mode</div>
+      <div class="cover-note">
+        <strong>Game Flow</strong><br>
+        Cover → Story → Order → Fill to 10 → Delivery → Next Order<br><br>
+        <strong>Levels</strong><br>
+        1. Learn • 2. Recognise • 3. Memory • 4. Mental Math • 5. Breakfast Rush<br><br>
+        All answer buttons stay visible at the bottom for easy mobile play.
+      </div>
+      <input id="coverNameInput" class="cover-name" type="text" maxlength="20" placeholder="Type player name">
+      <div class="cover-actions">
+        <button class="start-btn" id="coverStartBtn">▶ START GAME</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="top-title-row">
+        <div class="title-wrap">
+          <div class="title">Breakfast Café – Fill the Egg Tray</div>
+          <div class="sub">3-step mobile story flow • answer dock always visible</div>
+        </div>
+        <div class="top-actions">
+          <button class="mini-btn" id="soundToggleBtn" type="button">🔊 Sound</button>
+          <button class="mini-btn" id="gameInfoBtn" type="button">📘 Info</button>
+          <button class="mini-btn" id="changeUserBtn" type="button">👤 Change</button>
+          <button class="mini-btn" id="restartBtn" type="button">🔁 Restart</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">Player<span class="value" id="playerNameText">Farmer</span></div>
+        <div class="stat">Level<span class="value" id="levelText">1</span></div>
+        <div class="stat">Order<span class="value"><span id="qNum">1</span>/<span id="questionTotalTop">3</span></span></div>
+        <div class="stat">Score<span class="value" id="scoreText">0</span></div>
+        <div class="stat">Accuracy<span class="value" id="accuracyText">0%</span></div>
+        <div class="stat">Timer<span class="value" id="timerText">Off</span></div>
+      </div>
+    </header>
+
+    <div class="tickets-wrap">
+      <div class="section-label">Order Tickets</div>
+      <div class="tickets" id="ticketsRow"></div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="section-label">Level Progress</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="story-nav">
+      <button class="story-pill active" data-step="1" type="button">1. Order</button>
+      <button class="story-pill" data-step="2" type="button">2. Fill Tray</button>
+      <button class="story-pill" data-step="3" type="button">3. Delivery</button>
+    </div>
+
+    <section class="frame active" id="frame1">
+      <div class="frame-head">
+        <button class="frame-info-mini" id="frameInfoBtn" type="button">📘 Info</button>
+        <div class="frame-title">Customer Order</div>
+        <div style="width:52px"></div>
+      </div>
+
+      <div class="frame-main">
+        <div class="avatar-wrap">
+          <div class="avatar-box farmer asset-avatar" id="speakerAvatar">
+            <img id="speakerAvatarImg" src="farmer_neutral.png" alt="Farmer neutral">
+            <span class="emoji-fallback" id="speakerAvatarFallback" style="display:none">🧑‍🌾</span>
+          </div>
+          <div class="tag" id="speakerTag">🥚 Farmer Order</div>
+        </div>
+
+        <div class="card">
+          <div class="dialogue" id="orderDialogue">The café needs eggs for breakfast!</div>
+          <div class="order-line" id="orderPrompt">How many more eggs are needed?</div>
+          <div id="orderMainDisplay"></div>
+          <div class="help-line" id="orderHelpLine">Each tray must have 10 eggs.</div>
+        </div>
+
+        <div class="queue-strip" id="queueStrip"></div>
+      </div>
+    </section>
+
+    <section class="frame" id="frame2">
+      <div class="frame-title">Fill the Egg Tray</div>
+
+      <div class="frame-main tight">
+        <div class="card frame2-reminder">
+          <div class="dialogue" id="reminderDialogue">Help fill the tray so the kitchen can cook.</div>
+          <div class="order-line" id="reminderLine">Choose how many more eggs are needed.</div>
+          <div class="help-line" id="reminderHelp">Tap a number, then press <strong>Check</strong>.</div>
+        </div>
+
+        <div class="play-stage" id="playStage"></div>
+
+        <div class="hint-panel" id="hintPanel"></div>
+
+        <div class="frame2-dock">
+          <div class="preview-zone">
+            <div class="mini-tray">
+              <div class="mini-grid" id="previewTray"></div>
+            </div>
+            <div class="preview-text" id="previewText">Select eggs to add</div>
+            <div class="preview-text" id="previewEquation">? + ? = 10</div>
+          </div>
+
+          <div class="controls-stack">
+            <div class="answer-grid" id="answerGrid"></div>
+            <div class="utility-grid">
+              <button class="game-btn btn-check" id="checkBtn" type="button">✔ Check</button>
+              <button class="game-btn btn-hint" id="hintBtn" type="button">💡 Hint</button>
+              <button class="game-btn btn-clear" id="clearBtn" type="button">✖ Clear</button>
+              <button class="game-btn btn-next" id="nextBtn" type="button">➡ Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="frame" id="frame3">
+      <div class="frame-title">Kitchen Delivery</div>
+
+      <div class="frame-main tight" id="deliveryFrameMain">
+        <div class="avatar-box customer asset-avatar" id="chefAvatar">
+          <img id="chefAvatarImg" src="chef_neutral.png" alt="Chef">
+          <span class="emoji-fallback" id="chefAvatarFallback" style="display:none">👩‍🍳</span>
+        </div>
+        <div class="card bubble" id="chefBubble">
+          <div class="bubble-copy"><div class="bubble-line">Chef says: Let's fill a tray to 10!</div></div>
+        </div>
+        <div class="delivery-track" id="deliveryTrack">
+          <div class="delivery-stop"><img class="stop-art" id="deliveryTrayImg" src="egg_tray_empty.png" alt="Egg tray"><span class="label">Egg Tray</span></div>
+          <div class="delivery-arrow">➡</div>
+          <div class="delivery-stop"><span class="icon">🍳</span><span class="label">Kitchen</span></div>
+          <div class="delivery-arrow">➡</div>
+          <div class="delivery-stop"><img class="stop-art" id="deliveryCustomerImg" src="happy_customer_level1.png" alt=""><span class="stop-fallback" id="deliveryCustomerFallback">😋</span><span class="label" id="deliveryCustomerLabel">Happy Customer 1</span></div>
+        </div>
+        <div class="note">Current mission: <span id="missionText">Learn how to make 10.</span></div>
+        <div class="note">Best device score: <span id="bestScoreText">0</span> | Best streak: <span id="bestStreakText">0</span></div>
+      </div>
+    </section>
+
+    <div class="story-cta">
+      <button class="game-btn btn-clear" id="storyPrevBtn" type="button">⬅ Back</button>
+      <button class="game-btn btn-next" id="storyNextBtn" type="button">Next ➡</button>
+    </div>
+
+    <div class="feedback" id="feedback">Welcome to Breakfast Café!</div>
+    <div class="footer">Designed by Lim Kim Sze © 2026</div>
+  </div>
+
+  <div class="modal" id="gameInfoModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-title">How to Play</div>
+      <div class="report">
+        <strong>Goal</strong><br>
+        Every tray must have 10 eggs.<br><br>
+        <strong>Story Flow</strong><br>
+        1. Read the order<br>
+        2. Fill the tray to 10<br>
+        3. Deliver to the kitchen<br><br>
+        <strong>Levels</strong><br>
+        Level 1 – Learn<br>
+        Level 2 – Recognise patterns<br>
+        Level 3 – Memory tray flash<br>
+        Level 4 – Mental math only<br>
+        Level 5 – Breakfast rush<br><br>
+        <strong>Rewards</strong><br>
+        ⭐ 3 first-try points = Egg Combo<br>
+        🥇 5 first-try points = Golden Egg<br>
+        👨‍🌾 10 first-try points = Master Farmer
+      </div>
+      <div class="modal-actions">
+        <button class="game-btn btn-check" id="closeGameInfoBtn" type="button">✔ Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="levelIntroModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-title" id="levelIntroTitle">Level 1 – Learn</div>
+      <div class="modal-badge" id="levelIntroBadge">Egg Helper</div>
+      <div class="modal-line" id="levelIntroMission">Count the eggs and make the tray 10.</div>
+      <div class="report" id="levelIntroDetails"></div>
+      <div class="modal-actions">
+        <button class="game-btn btn-check" id="startLevelBtn" type="button">🥚 Start Level</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="resultsModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-title" id="resultsTitle">Level Complete!</div>
+      <div class="modal-badge" id="resultsBadge">Nice Work!</div>
+      <img class="reward-image" id="resultsRewardImg" src="golden_egg_badge.png" alt="Reward badge">
+      <div class="secret-easter" id="secretEaster">
+        <div class="secret-title">🥚 Secret Easter Egg Unlocked!</div>
+        <div class="secret-image-wrap asset-avatar">
+          <img id="secretOmeletteImg" src="plate_omelette_secret.png" alt="Plate of delicious omelette">
+          <span class="emoji-fallback" id="secretOmeletteFallback" style="display:none;font-size:56px">🍽️🍳</span>
+        </div>
+        <div class="secret-copy">Perfect rush! You solved every make-10 combination correctly.</div>
+      </div>
+      <div class="report" id="resultsReport"></div>
+      <div class="achievement-row" id="achievementRow"></div>
+      <div class="modal-line" id="resultsLine">Breakfast is saved!</div>
+      <div class="modal-actions" id="resultsActions"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="nameModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-title">Change Player</div>
+      <div class="modal-line">Type the player name for this device.</div>
+      <input id="playerNameInput" class="cover-name" type="text" maxlength="20" placeholder="Type player name">
+      <div class="modal-actions" style="margin-top:12px">
+        <button class="game-btn btn-check" id="saveNameBtn" type="button">✔ Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none;">
+    <img id="preloadTrayFull" src="egg_tray_full.png" alt="">
+    <img id="preloadTrayEmpty" src="egg_tray_empty.png" alt="">
+    <img id="preloadGoldenEgg" src="golden_egg_badge.png" alt="">
+    <img id="preloadMasterFarmer" src="master_farmer_badge.png" alt="">
+    <img id="preloadSecretOmelette" src="plate_omelette_secret.png" alt="">
+    <img id="preloadHappyCustomer1" src="happy_customer_level1.png" alt="">
+    <img id="preloadHappyCustomer2" src="happy_customer_level2.png" alt="">
+    <img id="preloadHappyCustomer3" src="happy_customer_level3.png" alt="">
+    <img id="preloadHappyCustomer4" src="happy_customer_level4.png" alt="">
+    <img id="preloadHappyCustomer5" src="happy_customer_level5.png" alt="">
+  </div>
+
+  <audio id="openingAudio" loop preload="auto"></audio>
+  <audio id="bgmBreakfastLoop" loop preload="auto"></audio>
+  <audio id="sfxOrderBell" preload="auto"></audio>
+  <audio id="sfxEggPick" preload="auto"></audio>
+  <audio id="sfxCorrect" preload="auto"></audio>
+  <audio id="sfxWrong" preload="auto"></audio>
+  <audio id="sfxTrayFill" preload="auto"></audio>
+  <audio id="sfxKitchenDing" preload="auto"></audio>
+  <audio id="sfxCustomerHappy" preload="auto"></audio>
+  <audio id="sfxLevelComplete" preload="auto"></audio>
+  <audio id="sfxFinalWin" preload="auto"></audio>
+
+  <div class="confetti-layer" id="confettiLayer"></div>
+
+  <script>
+    const PLAYER_NAME_KEY = "make10_egg_tray_player";
+    const BEST_SCORE_KEY = "make10_egg_tray_best";
+    const BEST_STREAK_KEY = "make10_egg_tray_best_streak";
+
+    const levels = {
+      1:{name:"Level 1 – Learn", badge:"Egg Helper", q:3, timer:0, mode:"learn", mission:"Count the eggs and make the tray 10.", details:"Tray is fully visible. Pupils can count the eggs carefully."},
+      2:{name:"Level 2 – Recognise", badge:"Pattern Spotter", q:4, timer:0, mode:"recognise", mission:"Spot the pattern and fill to 10 faster.", details:"The tray is still visible, but the game expects faster number-bond recognition."},
+      3:{name:"Level 3 – Memory", badge:"Quick Memory", q:4, timer:0, mode:"memory", mission:"Look quickly before the tray hides.", details:"The egg tray flashes briefly, then disappears. Pupils answer from memory."},
+      4:{name:"Level 4 – Mental Math", badge:"Mind Chef", q:5, timer:0, mode:"mental", mission:"Solve it using numbers only.", details:"No tray now. Pupils think mentally: 8 + ? = 10."},
+      5:{name:"Level 5 – Secret Rush", badge:"Café Champion", q:11, timer:90, mode:"rush", mission:"Solve every make-10 combination using numbers only.", details:"All combinations from 0 + 10 to 10 + 0 will appear. Reach a 7-streak on first try answers to unlock the secret omelette plate."}
+    };
+
+    const levelPools = {
+      1:[6,7,8,9],
+      2:[5,6,7,8,9],
+      3:[6,7,8,9],
+      4:[5,6,7,8,9],
+      5:[5,6,7,8,9]
+    };
+
+    const achievementDefs = [
+      {score:3, label:"⭐ Egg Combo"},
+      {score:5, label:"🥇 Golden Egg"},
+      {score:10, label:"👨‍🌾 Master Farmer"}
+    ];
+
+    const coverScreen = document.getElementById("coverScreen");
+    const coverNameInput = document.getElementById("coverNameInput");
+    const coverStartBtn = document.getElementById("coverStartBtn");
+    const coverTrayImg = document.getElementById("coverTrayImg");
+    const coverArt = document.getElementById("coverArt");
+    const app = document.getElementById("app");
+
+    const playerNameText = document.getElementById("playerNameText");
+    const levelText = document.getElementById("levelText");
+    const qNum = document.getElementById("qNum");
+    const questionTotalTop = document.getElementById("questionTotalTop");
+    const scoreText = document.getElementById("scoreText");
+    const accuracyText = document.getElementById("accuracyText");
+    const timerText = document.getElementById("timerText");
+
+    const ticketsRow = document.getElementById("ticketsRow");
+    const progressFill = document.getElementById("progressFill");
+
+    const speakerAvatar = document.getElementById("speakerAvatar");
+    const speakerTag = document.getElementById("speakerTag");
+    const orderDialogue = document.getElementById("orderDialogue");
+    const orderPrompt = document.getElementById("orderPrompt");
+    const orderMainDisplay = document.getElementById("orderMainDisplay");
+    const orderHelpLine = document.getElementById("orderHelpLine");
+    const queueStrip = document.getElementById("queueStrip");
+
+    const reminderDialogue = document.getElementById("reminderDialogue");
+    const reminderLine = document.getElementById("reminderLine");
+    const reminderHelp = document.getElementById("reminderHelp");
+    const playStage = document.getElementById("playStage");
+    const hintPanel = document.getElementById("hintPanel");
+    const previewTray = document.getElementById("previewTray");
+    const previewText = document.getElementById("previewText");
+    const previewEquation = document.getElementById("previewEquation");
+    const answerGrid = document.getElementById("answerGrid");
+    const checkBtn = document.getElementById("checkBtn");
+    const hintBtn = document.getElementById("hintBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    const chefBubble = document.getElementById("chefBubble");
+    const deliveryTrack = document.getElementById("deliveryTrack");
+    const missionText = document.getElementById("missionText");
+    const bestScoreText = document.getElementById("bestScoreText");
+    const bestStreakText = document.getElementById("bestStreakText");
+    const feedback = document.getElementById("feedback");
+    const deliveryFrameMain = document.getElementById("deliveryFrameMain");
+
+    const soundToggleBtn = document.getElementById("soundToggleBtn");
+    const gameInfoBtn = document.getElementById("gameInfoBtn");
+    const frameInfoBtn = document.getElementById("frameInfoBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const changeUserBtn = document.getElementById("changeUserBtn");
+
+    const gameInfoModal = document.getElementById("gameInfoModal");
+    const closeGameInfoBtn = document.getElementById("closeGameInfoBtn");
+    const levelIntroModal = document.getElementById("levelIntroModal");
+    const levelIntroTitle = document.getElementById("levelIntroTitle");
+    const levelIntroBadge = document.getElementById("levelIntroBadge");
+    const levelIntroMission = document.getElementById("levelIntroMission");
+    const levelIntroDetails = document.getElementById("levelIntroDetails");
+    const startLevelBtn = document.getElementById("startLevelBtn");
+
+    const resultsModal = document.getElementById("resultsModal");
+    const resultsTitle = document.getElementById("resultsTitle");
+    const resultsBadge = document.getElementById("resultsBadge");
+    const resultsReport = document.getElementById("resultsReport");
+    const resultsLine = document.getElementById("resultsLine");
+    const resultsActions = document.getElementById("resultsActions");
+    const achievementRow = document.getElementById("achievementRow");
+
+    const nameModal = document.getElementById("nameModal");
+    const playerNameInput = document.getElementById("playerNameInput");
+    const saveNameBtn = document.getElementById("saveNameBtn");
+
+    const storyPills = [...document.querySelectorAll(".story-pill")];
+    const storyPrevBtn = document.getElementById("storyPrevBtn");
+    const storyNextBtn = document.getElementById("storyNextBtn");
+    const frames = [document.getElementById("frame1"), document.getElementById("frame2"), document.getElementById("frame3")];
+    const confettiLayer = document.getElementById("confettiLayer");
+
+    const coverChefImg = document.getElementById("coverChefImg");
+    const coverChefFallback = document.getElementById("coverChefFallback");
+    const coverFarmerImg = document.getElementById("coverFarmerImg");
+    const coverFarmerFallback = document.getElementById("coverFarmerFallback");
+    const speakerAvatarImg = document.getElementById("speakerAvatarImg");
+    const speakerAvatarFallback = document.getElementById("speakerAvatarFallback");
+    const chefAvatarImg = document.getElementById("chefAvatarImg");
+    const chefAvatarFallback = document.getElementById("chefAvatarFallback");
+    const resultsRewardImg = document.getElementById("resultsRewardImg");
+    const deliveryTrayImg = document.getElementById("deliveryTrayImg");
+    const deliveryCustomerImg = document.getElementById("deliveryCustomerImg");
+    const deliveryCustomerFallback = document.getElementById("deliveryCustomerFallback");
+    const deliveryCustomerLabel = document.getElementById("deliveryCustomerLabel");
+    const openingAudio = document.getElementById("openingAudio");
+    const secretEaster = document.getElementById("secretEaster");
+    const secretOmeletteImg = document.getElementById("secretOmeletteImg");
+    const secretOmeletteFallback = document.getElementById("secretOmeletteFallback");
+    const preloadTrayFull = document.getElementById("preloadTrayFull");
+    const preloadTrayEmpty = document.getElementById("preloadTrayEmpty");
+    const preloadGoldenEgg = document.getElementById("preloadGoldenEgg");
+    const preloadMasterFarmer = document.getElementById("preloadMasterFarmer");
+    const preloadSecretOmelette = document.getElementById("preloadSecretOmelette");
+    const preloadHappyCustomer1 = document.getElementById("preloadHappyCustomer1");
+    const preloadHappyCustomer2 = document.getElementById("preloadHappyCustomer2");
+    const preloadHappyCustomer3 = document.getElementById("preloadHappyCustomer3");
+    const preloadHappyCustomer4 = document.getElementById("preloadHappyCustomer4");
+    const preloadHappyCustomer5 = document.getElementById("preloadHappyCustomer5");
+
+    const ASSETS = {
+      images: {
+        chefNeutral: ["chef_neutral.png", "images/chef_neutral.png"],
+        chefHappy: ["chef_happy.png", "images/chef_happy.png"],
+        chefSad: ["chef_sad.png", "images/chef_sad.png"],
+        farmerNeutral: ["farmer_neutral.png", "images/farmer_neutral.png"],
+        happyCustomer1: ["happy_customer_level1.png", "happy_customer_level1", "./happy_customer_level1.png", "images/happy_customer_level1.png", "images/happy_customer_level1"],
+        happyCustomer2: ["happy_customer_level2.png", "happy_customer_level2", "./happy_customer_level2.png", "images/happy_customer_level2.png", "images/happy_customer_level2"],
+        happyCustomer3: ["happy_customer_level3.png", "happy_customer_level3", "./happy_customer_level3.png", "images/happy_customer_level3.png", "images/happy_customer_level3"],
+        happyCustomer4: ["happy_customer_level4.png", "happy_customer_level4", "./happy_customer_level4.png", "images/happy_customer_level4.png", "images/happy_customer_level4"],
+        happyCustomer5: ["happy_customer_level5.png", "happy_customer_level5", "./happy_customer_level5.png", "images/happy_customer_level5.png", "images/happy_customer_level5"],
+        customerHappy: ["customer_happy.png", "images/customer_happy.png", "chef_happy.png", "images/chef_happy.png"],
+        secretOmelette: ["plate_omelette_secret.png", "images/plate_omelette_secret.png"],
+        eggTrayFull: ["egg_tray_full.png", "images/egg_tray_full.png"],
+        eggTrayEmpty: ["egg_tray_empty.png", "images/egg_tray_empty.png"],
+        kitchenBg: ["kitchen_bg.png", "images/kitchen_bg.png"],
+        goldenEggBadge: ["golden_egg_badge.png", "images/golden_egg_badge.png"],
+        masterFarmerBadge: ["master_farmer_badge.png", "images/master_farmer_badge.png"]
+      },
+      audio: {
+        bgmBreakfastLoop: document.getElementById("bgmBreakfastLoop"),
+        orderBell: document.getElementById("sfxOrderBell"),
+        eggPick: document.getElementById("sfxEggPick"),
+        correct: document.getElementById("sfxCorrect"),
+        wrong: document.getElementById("sfxWrong"),
+        trayFill: document.getElementById("sfxTrayFill"),
+        kitchenDing: document.getElementById("sfxKitchenDing"),
+        customerHappy: document.getElementById("sfxCustomerHappy"),
+        levelComplete: document.getElementById("sfxLevelComplete"),
+        finalWin: document.getElementById("sfxFinalWin")
+      }
+    };
+
+    const AUDIO_CANDIDATES = {
+      bgmBreakfastLoop: ["bgm_breakfast_loop.mp3", "audio/bgm_breakfast_loop.mp3"],
+      orderBell: ["sfx_order_bell.mp3", "audio/sfx_order_bell.mp3"],
+      eggPick: ["sfx_egg_pick.mp3", "audio/sfx_egg_pick.mp3", "sfx_order_bell.mp3", "audio/sfx_order_bell.mp3"],
+      correct: ["sfx_correct.mp3", "audio/sfx_correct.mp3"],
+      wrong: ["sfx_wrong.mp3", "audio/sfx_wrong.mp3"],
+      trayFill: ["sfx_tray_fill.mp3", "audio/sfx_tray_fill.mp3"],
+      kitchenDing: ["sfx_kitchen_ding.mp3", "audio/sfx_kitchen_ding.mp3"],
+      customerHappy: ["sfx_customer_happy.mp3", "audio/sfx_customer_happy.mp3"],
+      levelComplete: ["tada.mp3", "audio/tada.mp3", "sfx_level_complete.mp3", "audio/sfx_level_complete.mp3"],
+      finalWin: ["sfx_correct.mp3", "audio/sfx_correct.mp3"]
+    };
+
+    function syncViewportHeight(){
+      const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      document.documentElement.style.setProperty("--app-h", `${Math.round(h)}px`);
+    }
+
+    function cycleAudioSource(el){
+      if(!el) return;
+      const list = JSON.parse(el.dataset.candidates || "[]");
+      const nextIndex = Number(el.dataset.sourceIndex || 0) + 1;
+      if(nextIndex >= list.length) return;
+      el.dataset.sourceIndex = String(nextIndex);
+      el.src = list[nextIndex];
+      el.load();
+    }
+
+    function prepareAudio(el, candidates){
+      if(!el) return;
+      el.dataset.candidates = JSON.stringify(candidates);
+      el.dataset.sourceIndex = "0";
+      el.src = candidates[0] || "";
+      el.addEventListener("error", ()=> cycleAudioSource(el));
+      el.load();
+    }
+
+    function unlockAudio(){
+      if(audioUnlocked) return;
+      audioUnlocked = true;
+    }
+
+    function playOpeningLoop(){
+      if(!soundOn || !audioUnlocked || !openingAudio) return;
+      try{
+        openingAudio.currentTime = 0;
+        const p = openingAudio.play();
+        if(p && typeof p.catch === "function") p.catch(()=>{});
+      } catch(err){}
+    }
+
+    function stopOpeningLoop(){
+      if(!openingAudio) return;
+      try{
+        openingAudio.pause();
+        openingAudio.currentTime = 0;
+      } catch(err){}
+    }
+
+    function safePlay(sound, reset = true){
+      if(!soundOn || !audioUnlocked || !sound) return;
+      try{
+        if(reset) sound.currentTime = 0;
+        const playPromise = sound.play();
+        if(playPromise && typeof playPromise.catch === "function") playPromise.catch(()=>{});
+      } catch(err){}
+    }
+
+    function resolveImagePath(list){
+      return Array.isArray(list) ? list[0] : list;
+    }
+
+    function cycleImageSource(imgEl, fallbackEl){
+      const list = JSON.parse(imgEl.dataset.candidates || "[]");
+      const nextIndex = Number(imgEl.dataset.sourceIndex || 0) + 1;
+      if(nextIndex >= list.length){
+        imgEl.style.display = "none";
+        if(fallbackEl) fallbackEl.style.display = "grid";
+        return;
+      }
+      imgEl.dataset.sourceIndex = String(nextIndex);
+      imgEl.src = list[nextIndex];
+    }
+
+    function setAvatarImage(imgEl, fallbackEl, candidates, emoji){
+      if(!imgEl || !fallbackEl) return;
+      const list = Array.isArray(candidates) ? candidates : [candidates];
+      fallbackEl.textContent = emoji;
+      fallbackEl.style.display = "none";
+      imgEl.style.display = "block";
+      imgEl.dataset.candidates = JSON.stringify(list);
+      imgEl.dataset.sourceIndex = "0";
+      imgEl.onerror = ()=> cycleImageSource(imgEl, fallbackEl);
+      imgEl.src = list[0];
+      imgEl.alt = emoji;
+    }
+
+    function setImageWithFallback(imgEl, candidates){
+      if(!imgEl) return;
+      const list = Array.isArray(candidates) ? candidates : [candidates];
+      imgEl.style.display = "block";
+      imgEl.dataset.candidates = JSON.stringify(list);
+      imgEl.dataset.sourceIndex = "0";
+      imgEl.onerror = ()=>{
+        const nextIndex = Number(imgEl.dataset.sourceIndex || 0) + 1;
+        if(nextIndex >= list.length) return;
+        imgEl.dataset.sourceIndex = String(nextIndex);
+        imgEl.src = list[nextIndex];
+      };
+      imgEl.src = list[0];
+    }
+
+    function setStopImage(imgEl, fallbackEl, candidates, emoji){
+      if(!imgEl || !fallbackEl) return;
+      const list = Array.isArray(candidates) ? candidates : [candidates];
+      fallbackEl.textContent = emoji;
+      fallbackEl.style.display = "none";
+      imgEl.style.display = "block";
+      imgEl.dataset.candidates = JSON.stringify(list);
+      imgEl.dataset.sourceIndex = "0";
+      imgEl.onerror = ()=>{
+        const nextIndex = Number(imgEl.dataset.sourceIndex || 0) + 1;
+        if(nextIndex >= list.length){
+          imgEl.style.display = "none";
+          fallbackEl.style.display = "flex";
+          return;
+        }
+        imgEl.dataset.sourceIndex = String(nextIndex);
+        imgEl.src = list[nextIndex];
+      };
+      imgEl.src = list[0];
+    }
+
+    function applyBackgroundWithFallback(el, candidates, fallbackGradient = ""){
+      if(!el) return;
+      const list = Array.isArray(candidates) ? candidates : [candidates];
+      let index = 0;
+      const test = new Image();
+      test.onload = ()=>{
+        if(el === coverArt){
+          el.style.backgroundImage = `url('${list[index]}'), ${fallbackGradient}`;
+          el.style.backgroundSize = "cover, auto";
+          el.style.backgroundPosition = "center, center";
+          el.style.backgroundBlendMode = "soft-light, normal";
+        } else {
+          el.style.backgroundImage = `url('${list[index]}')`;
+          el.style.backgroundSize = "cover";
+          el.style.backgroundPosition = "center";
+        }
+      };
+      test.onerror = ()=>{
+        index += 1;
+        if(index < list.length){
+          test.src = list[index];
+        }
+      };
+      test.src = list[index];
+    }
+
+    Object.entries(ASSETS.audio).forEach(([key, sound]) => {
+      if(!sound) return;
+      sound.volume = key === "bgmBreakfastLoop" ? 0.28 : 0.6;
+      prepareAudio(sound, AUDIO_CANDIDATES[key] || []);
+    });
+    if(openingAudio){
+      openingAudio.volume = 0.4;
+      prepareAudio(openingAudio, ["opening_sound.mp3", "audio/opening_sound.mp3"]);
+    }
+
+    let currentLevel = 1;
+    let currentQuestionNumber = 1;
+    let currentLevelScore = 0;
+    let totalFirstTryScore = 0;
+    let totalCompletedOrders = 0;
+    let streak = 0;
+    let timerInterval = null;
+    let timeLeft = 0;
+    let storyStep = 1;
+    let currentQuestion = null;
+    let currentDeck = [];
+    let questionResolved = false;
+    let firstTryOpen = true;
+    let selectedAnswer = null;
+    let hintShown = false;
+    let memoryVisible = true;
+    let memoryTimeout = null;
+    let memoryCountdownStarted = false;
+    let levelTicketResults = [];
+    let unlockedAchievements = new Set();
+    let soundOn = true;
+    let audioUnlocked = false;
+    let level5RushStreak = 0;
+    let level5BestRushStreak = 0;
+
+    function getPlayerName(){
+      return localStorage.getItem(PLAYER_NAME_KEY) || "Farmer";
+    }
+
+    function savePlayerName(name){
+      localStorage.setItem(PLAYER_NAME_KEY, name || "Farmer");
+    }
+
+    function getBestScore(){
+      return Number(localStorage.getItem(BEST_SCORE_KEY) || 0);
+    }
+
+    function setBestScore(score){
+      localStorage.setItem(BEST_SCORE_KEY, String(score));
+    }
+
+    function getBestStreak(){
+      return Number(localStorage.getItem(BEST_STREAK_KEY) || 0);
+    }
+
+    function setBestStreak(score){
+      localStorage.setItem(BEST_STREAK_KEY, String(score));
+    }
+
+    function shuffle(arr){
+      const copy = [...arr];
+      for(let i = copy.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function buildDeck(levelNo){
+      const lv = levels[levelNo];
+      if(levelNo === 5){
+        return shuffle([0,1,2,3,4,5,6,7,8,9,10]);
+      }
+      const pool = levelPools[levelNo];
+      const deck = [];
+      while(deck.length < lv.q){
+        deck.push(...shuffle(pool));
+      }
+      return deck.slice(0, lv.q);
+    }
+
+    function getAnswerChoices(){
+      return currentLevel === 5 ? [0,1,2,3,4,5,6,7,8,9,10] : [1,2,3,4,5];
+    }
+
+    function goToStoryStep(step){
+      storyStep = Math.max(1, Math.min(3, step));
+      frames.forEach((frame, i)=> frame.classList.toggle("active", i === storyStep - 1));
+      storyPills.forEach((pill, i)=> pill.classList.toggle("active", i === storyStep - 1));
+      storyPrevBtn.disabled = storyStep === 1;
+
+      if(levels[currentLevel]?.mode === "memory" && storyStep === 2 && !questionResolved && !memoryCountdownStarted){
+        startMemoryCountdown();
+      }
+      if(questionResolved && storyStep === 3){
+        storyNextBtn.textContent = "Next Order ➡";
+      } else if(!questionResolved && storyStep === 3){
+        storyNextBtn.textContent = "Try Again ➡";
+      } else {
+        storyNextBtn.textContent = "Next ➡";
+      }
+    }
+
+    function makeGridHtml(count, total = 10, classes = {}){
+      let html = "";
+      for(let i = 0; i < total; i++){
+        let cls = "blank";
+        if(classes.hidden){
+          cls = "hidden-slot";
+        } else if(i < count){
+          cls = classes.addedFrom != null && i >= classes.addedFrom ? "added" : "filled";
+        }
+        html += `<div class="egg-slot ${cls}"></div>`;
+      }
+      return html;
+    }
+
+    function makeMiniGridHtml(count){
+      let html = "";
+      for(let i = 0; i < 10; i++){
+        html += `<div class="mini-slot ${i < count ? "added" : "blank"}"></div>`;
+      }
+      return html;
+    }
+
+    function renderCoverTray(){
+      setImageWithFallback(coverTrayImg, ASSETS.images.eggTrayFull);
+    }
+
+    function renderAnswerButtons(){
+      answerGrid.innerHTML = "";
+      const choices = getAnswerChoices();
+      answerGrid.classList.toggle("many", choices.length > 5);
+      choices.forEach(num=>{
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "game-btn answer-btn" + (choices.length > 5 ? " small" : "") + (selectedAnswer === num ? " selected" : "");
+        btn.textContent = String(num);
+        btn.disabled = questionResolved;
+        btn.addEventListener("click", ()=> selectAnswer(num));
+        answerGrid.appendChild(btn);
+      });
+    }
+
+    function renderQueuePreview(){
+      if(currentLevel !== 5){
+        queueStrip.innerHTML = "";
+        queueStrip.style.display = "none";
+        return;
+      }
+
+      queueStrip.style.display = "grid";
+      const cards = [];
+      const remaining = levels[currentLevel].q - currentQuestionNumber + 1;
+
+      for(let i = 0; i < 3; i++){
+        const index = currentQuestionNumber - 1 + i;
+        if(index >= levels[currentLevel].q) continue;
+
+        const title = i === 0 ? "Now" : "Next";
+        const orderNo = index + 1;
+        const text = i === 0
+          ? `Order ${orderNo} of ${levels[currentLevel].q}<br>Make 10` 
+          : `Order ${orderNo}<br>Get ready`;
+
+        cards.push(`<div class="queue-card ${i === 0 ? "active" : ""}"><strong>${title}</strong><br>${text}</div>`);
+      }
+
+      if(cards.length === 0){
+        cards.push(`<div class="queue-card active"><strong>Rush Complete</strong><br>Great job!</div>`);
+      }
+
+      queueStrip.innerHTML = cards.join("");
+      queueStrip.setAttribute("aria-label", `Rush status. ${remaining} orders remaining.`);
+    }
+
+    function renderOrderDisplay(){
+      if(!currentQuestion) return;
+      const shown = currentQuestion.shown;
+      const mode = levels[currentLevel].mode;
+
+      speakerAvatar.classList.toggle("farmer", currentLevel !== 5);
+      speakerAvatar.classList.toggle("customer", currentLevel === 5);
+      setAvatarImage(
+        speakerAvatarImg,
+        speakerAvatarFallback,
+        currentLevel === 5 ? ASSETS.images.chefNeutral : ASSETS.images.farmerNeutral,
+        currentLevel === 5 ? "👩‍🍳" : "🧑‍🌾"
+      );
+      speakerTag.textContent = currentLevel === 5 ? "🍳 Breakfast Rush" : "🥚 Farmer Order";
+      orderDialogue.textContent = currentLevel === 5
+        ? "Quick! The kitchen needs trays fast!"
+        : "Chef says: Each tray must have 10 eggs.";
+
+      if(mode === "mental" || mode === "rush"){ 
+        orderPrompt.textContent = mode === "rush" ? "Solve every make-10 combination." : "Solve the number bond to 10.";
+        orderMainDisplay.innerHTML = `<div class="big-equation"><span class="equation-badge">${shown}</span><span>+</span><span class="equation-badge">?</span><span>=</span><span class="equation-badge">10</span></div>`;
+        orderHelpLine.textContent = mode === "rush"
+          ? "Numbers only. All combinations from 0 + 10 to 10 + 0 will be tested."
+          : "Think of 10 in your head, then choose the missing number.";
+      } else if(mode === "memory"){
+        orderPrompt.textContent = "Look carefully. The tray will hide soon.";
+        orderMainDisplay.innerHTML = `<div class="big-equation"><span class="equation-badge">${shown}</span><span>+</span><span class="equation-badge">?</span><span>=</span><span class="equation-badge">10</span></div>`;
+        orderHelpLine.textContent = `This tray starts with ${shown} eggs.`;
+      } else {
+        orderPrompt.textContent = "How many more eggs are needed?";
+        orderMainDisplay.innerHTML = `<div class="big-equation"><span class="equation-badge">${shown}</span><span>+</span><span class="equation-badge">?</span><span>=</span><span class="equation-badge">10</span></div>`;
+        orderHelpLine.textContent = `${shown} eggs are already in the tray. Choose how many more are needed.`;
+      }
+
+      renderQueuePreview();
+    }
+
+    function renderPlayStage(){
+      if(!currentQuestion) return;
+      const shown = currentQuestion.shown;
+      const mode = levels[currentLevel].mode;
+
+      reminderDialogue.textContent = currentLevel === 5
+        ? "Breakfast rush! Solve this order first."
+        : "Help fill the tray so the kitchen can cook.";
+      reminderLine.textContent = (mode === "mental" || mode === "rush")
+        ? "Use mental math to make 10."
+        : "Choose how many more eggs are needed.";
+      reminderHelp.innerHTML = "Tap a number, then press <strong>Check</strong>.";
+
+      let html = "";
+
+      if(mode === "mental" || mode === "rush"){ 
+        html = `
+          <div class="mental-card">
+            <div class="sum">
+              <span class="sum-part">${shown}</span>
+              <span class="sum-part">+</span>
+              <span class="sum-part">?</span>
+              <span class="sum-part">=</span>
+              <span class="sum-part">10</span>
+            </div>
+            <div class="help-line">${mode === "rush" ? "Numbers only. Complete every combination to unlock the secret plate." : "How many more eggs are needed?"}</div>
+          </div>
+        `;
+      } else if(mode === "memory"){
+        if(memoryVisible){
+          html = `
+            <div class="tray-wrap">
+              <div class="egg-grid">${makeGridHtml(shown)}</div>
+            </div>
+          `;
+        } else {
+          html = `
+            <div class="memory-banner">
+              Tray hidden!<span class="small">Remember the eggs and choose the missing number.</span>
+              <div style="margin-top:12px" class="tray-wrap">
+                <div class="egg-grid">${makeGridHtml(10, 10, {hidden:true})}</div>
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        const totalShown = questionResolved ? 10 : shown;
+        const addedFrom = questionResolved ? shown : null;
+        html = `
+          <div class="tray-wrap">
+            <div class="egg-grid">${makeGridHtml(totalShown, 10, {addedFrom})}</div>
+          </div>
+        `;
+      }
+
+      playStage.innerHTML = html;
+      previewTray.innerHTML = makeMiniGridHtml(selectedAnswer || 0);
+      previewText.textContent = selectedAnswer ? `Add ${selectedAnswer} egg${selectedAnswer === 1 ? "" : "s"}` : "Select eggs to add";
+      previewEquation.textContent = `${shown} + ${selectedAnswer ?? "?"} = 10`;
+    }
+
+    function renderHint(){
+      if(!currentQuestion || !hintShown){
+        hintPanel.classList.remove("show");
+        hintPanel.innerHTML = "";
+        return;
+      }
+      hintPanel.classList.add("show");
+      hintPanel.innerHTML = `${currentQuestion.shown} eggs are already there. We need <strong>${currentQuestion.need}</strong> more to make <strong>10</strong>.<br><div style="margin-top:6px">${currentQuestion.shown} + ${currentQuestion.need} = 10</div>`;
+    }
+
+    function getHappyCustomerAsset(levelNo){
+      if(levelNo === 1) return ASSETS.images.happyCustomer1;
+      if(levelNo === 2) return ASSETS.images.happyCustomer2;
+      if(levelNo === 3) return ASSETS.images.happyCustomer3;
+      if(levelNo === 4) return ASSETS.images.happyCustomer4;
+      if(levelNo === 5) return ASSETS.images.happyCustomer5;
+      return ASSETS.images.customerHappy;
+    }
+
+    function getHappyCustomerLabel(levelNo){
+      return `Happy Customer ${Math.max(1, Math.min(5, levelNo || 1))}`;
+    }
+
+    function setDeliveryState(type, message){
+      chefBubble.className = "card bubble" + (type === "good" ? " good" : type === "bad" ? " bad" : "");
+      chefBubble.innerHTML = message;
+      deliveryTrack.className = "delivery-track" + (type === "good" ? " success" : type === "bad" ? " fail" : "");
+      const happyAssetChain = [...getHappyCustomerAsset(currentLevel)];
+      if(deliveryCustomerLabel) deliveryCustomerLabel.textContent = getHappyCustomerLabel(currentLevel);
+
+      if(type === "good"){
+        setAvatarImage(chefAvatarImg, chefAvatarFallback, ASSETS.images.chefHappy, "😄");
+        setStopImage(deliveryCustomerImg, deliveryCustomerFallback, happyAssetChain, "😋");
+        setImageWithFallback(deliveryTrayImg, ASSETS.images.eggTrayFull);
+      } else if(type === "bad"){
+        setAvatarImage(chefAvatarImg, chefAvatarFallback, ASSETS.images.chefSad, "😟");
+        setStopImage(deliveryCustomerImg, deliveryCustomerFallback, happyAssetChain, "😋");
+        setImageWithFallback(deliveryTrayImg, ASSETS.images.eggTrayEmpty);
+      } else {
+        setAvatarImage(chefAvatarImg, chefAvatarFallback, ASSETS.images.chefNeutral, "👩‍🍳");
+        setStopImage(deliveryCustomerImg, deliveryCustomerFallback, happyAssetChain, "😋");
+        setImageWithFallback(deliveryTrayImg, ASSETS.images.eggTrayEmpty);
+      }
+    }
+
+    function renderTickets(){
+      ticketsRow.innerHTML = "";
+      const lv = levels[currentLevel];
+      for(let i = 0; i < lv.q; i++){
+        const ticket = document.createElement("div");
+        const status = levelTicketResults[i] || "pending";
+        ticket.className = `ticket ${status}` + (i === currentQuestionNumber - 1 && !levelTicketResults[i] ? " current" : "");
+        ticket.textContent = i + 1;
+        ticketsRow.appendChild(ticket);
+      }
+    }
+
+    function updateProgress(){
+      const lv = levels[currentLevel];
+      const done = levelTicketResults.filter(Boolean).length;
+      progressFill.style.width = `${(done / lv.q) * 100}%`;
+    }
+
+    function updateTop(){
+      const lv = levels[currentLevel];
+      playerNameText.textContent = getPlayerName();
+      levelText.textContent = currentLevel;
+      qNum.textContent = Math.min(currentQuestionNumber, lv.q);
+      questionTotalTop.textContent = lv.q;
+      scoreText.textContent = totalFirstTryScore;
+      const accuracy = totalCompletedOrders ? Math.round((totalFirstTryScore / totalCompletedOrders) * 100) : 0;
+      accuracyText.textContent = `${accuracy}%`;
+      timerText.textContent = lv.timer ? `${Math.max(0, timeLeft)}s` : "Off";
+      missionText.textContent = lv.mission;
+      bestScoreText.textContent = getBestScore();
+      bestStreakText.textContent = getBestStreak();
+      renderTickets();
+      updateProgress();
+    }
+
+    function syncButtons(){
+      checkBtn.disabled = (selectedAnswer === null) || questionResolved;
+      clearBtn.disabled = (selectedAnswer === null) || questionResolved;
+      hintBtn.disabled = questionResolved || hintShown;
+      nextBtn.disabled = !questionResolved;
+      renderAnswerButtons();
+    }
+
+    function refreshUI(){
+      renderOrderDisplay();
+      renderPlayStage();
+      renderHint();
+      updateTop();
+      syncButtons();
+    }
+
+    function selectAnswer(num){
+      if(questionResolved) return;
+      selectedAnswer = num;
+      safePlay(ASSETS.audio.eggPick);
+      feedback.className = "feedback";
+      feedback.textContent = `You selected ${num}. Press Check when ready.`;
+      refreshUI();
+      if(storyStep !== 2) goToStoryStep(2);
+    }
+
+    function clearSelection(){
+      if(questionResolved) return;
+      selectedAnswer = null;
+      feedback.className = "feedback";
+      feedback.textContent = "Selection cleared.";
+      refreshUI();
+    }
+
+    function showHint(){
+      if(questionResolved || !currentQuestion) return;
+      hintShown = true;
+      feedback.className = "feedback";
+      feedback.textContent = `${currentQuestion.shown} needs ${currentQuestion.need} more to make 10.`;
+      refreshUI();
+    }
+
+    function maybeUnlockAchievements(){
+      achievementDefs.forEach(def=>{
+        if(totalFirstTryScore >= def.score){
+          unlockedAchievements.add(def.label);
+        }
+      });
+    }
+
+    function checkAnswer(){
+      if(!currentQuestion || selectedAnswer === null || questionResolved) return;
+      const correct = selectedAnswer === currentQuestion.need;
+
+      if(correct){
+        questionResolved = true;
+        totalCompletedOrders += 1;
+        if(firstTryOpen){
+          totalFirstTryScore += 1;
+          currentLevelScore += 1;
+          streak += 1;
+        } else {
+          streak = 0;
+        }
+        if(streak > getBestStreak()) setBestStreak(streak);
+        if(totalFirstTryScore > getBestScore()) setBestScore(totalFirstTryScore);
+        maybeUnlockAchievements();
+        if(currentLevel === 5){
+          if(firstTryOpen){
+            level5RushStreak += 1;
+            level5BestRushStreak = Math.max(level5BestRushStreak, level5RushStreak);
+          } else {
+            level5RushStreak = 0;
+          }
+        }
+        levelTicketResults[currentQuestionNumber - 1] = firstTryOpen ? "correct" : "retry";
+        feedback.className = "feedback good";
+        feedback.textContent = `Perfect! ${currentQuestion.shown} + ${currentQuestion.need} = 10.`;
+        setDeliveryState(
+          "good",
+          `<div class="bubble-copy"><div class="bubble-line">Chef says: Perfect! Now the tray has <strong>10 eggs</strong>!</div><div class="bubble-line bubble-equation">${currentQuestion.shown} + ${currentQuestion.need} = 10</div></div>`
+        );
+        safePlay(ASSETS.audio.correct);
+        renderPlayStage();
+        syncButtons();
+        launchConfetti(24);
+        goToStoryStep(3);
+      } else {
+        firstTryOpen = false;
+        streak = 0;
+        if(currentLevel === 5) level5RushStreak = 0;
+        feedback.className = "feedback bad";
+        feedback.textContent = `Not yet. This tray has ${currentQuestion.shown} eggs. Try again.`;
+        setDeliveryState(
+          "bad",
+          `<div class="bubble-copy"><div class="bubble-line">Chef says: This tray has <strong>${currentQuestion.shown}</strong> eggs.</div><div class="bubble-line bubble-equation">We need <strong>${currentQuestion.need}</strong> more.</div></div>`
+        );
+        safePlay(ASSETS.audio.wrong);
+        goToStoryStep(3);
+      }
+
+      updateTop();
+    }
+
+    function startMemoryCountdown(){
+      if(levels[currentLevel].mode !== "memory") return;
+      memoryCountdownStarted = true;
+      memoryVisible = true;
+      renderPlayStage();
+      clearTimeout(memoryTimeout);
+      memoryTimeout = setTimeout(()=>{
+        memoryVisible = false;
+        renderPlayStage();
+      }, 1100);
+    }
+
+    function getQuestion(){
+      const shown = currentDeck[currentQuestionNumber - 1];
+      return {shown, need:10 - shown};
+    }
+
+    function loadQuestion(){
+      if(currentQuestionNumber > levels[currentLevel].q){
+        completeLevel();
+        return;
+      }
+      clearTimeout(memoryTimeout);
+      currentQuestion = getQuestion();
+      questionResolved = false;
+      firstTryOpen = true;
+      selectedAnswer = null;
+      hintShown = false;
+      memoryVisible = true;
+      memoryCountdownStarted = false;
+      feedback.className = "feedback";
+      feedback.textContent = currentLevel === 5 ? "Breakfast rush! Solve this order quickly." : "Read the order, then fill the tray to 10.";
+      setDeliveryState("ready", `<div class="bubble-copy"><div class="bubble-line">Chef says: Read the order and help fill the tray to 10.</div></div>`);
+      safePlay(ASSETS.audio.orderBell);
+      goToStoryStep(1);
+      refreshUI();
+    }
+
+    function stopTimer(){
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function startTimer(){
+      stopTimer();
+      const lv = levels[currentLevel];
+      if(!lv.timer) return;
+      timeLeft = lv.timer;
+      updateTop();
+      timerInterval = setInterval(()=>{
+        timeLeft -= 1;
+        updateTop();
+        if(timeLeft <= 0){
+          stopTimer();
+          finishGame(true);
+        }
+      }, 1000);
+    }
+
+    function showLevelIntro(levelNo){
+      const lv = levels[levelNo];
+      levelIntroTitle.textContent = lv.name;
+      levelIntroBadge.textContent = lv.badge;
+      levelIntroMission.textContent = lv.mission;
+      levelIntroDetails.innerHTML = `
+        Orders this level: ${lv.q}<br>
+        ${lv.timer ? `Timer: ${lv.timer} seconds<br>` : "Timer: Off<br>"}
+        ${lv.details}<br><br>
+        Remember: every tray must have <strong>10 eggs</strong>.
+      `;
+      levelIntroModal.classList.add("show");
+    }
+
+    function startLevel(levelNo){
+      stopTimer();
+      clearTimeout(memoryTimeout);
+      currentLevel = levelNo;
+      if(deliveryCustomerLabel) deliveryCustomerLabel.textContent = getHappyCustomerLabel(levelNo);
+      currentQuestionNumber = 1;
+      currentLevelScore = 0;
+      currentDeck = buildDeck(levelNo);
+      levelTicketResults = Array(levels[levelNo].q).fill(null);
+      currentQuestion = null;
+      questionResolved = false;
+      selectedAnswer = null;
+      hintShown = false;
+      memoryVisible = true;
+      if(levels[levelNo].timer){
+        timeLeft = levels[levelNo].timer;
+      } else {
+        timeLeft = 0;
+      }
+      level5RushStreak = 0;
+      level5BestRushStreak = 0;
+      feedback.className = "feedback";
+      feedback.textContent = "Get ready for the next level!";
+      setDeliveryState("ready", `<div class="bubble-copy"><div class="bubble-line">Chef says: A new breakfast mission is starting!</div></div>`);
+      updateTop();
+      syncButtons();
+      showLevelIntro(levelNo);
+    }
+
+    function renderAchievements(){
+      achievementRow.innerHTML = achievementDefs.map(def=>{
+        const unlocked = unlockedAchievements.has(def.label);
+        return `<div class="achievement-chip ${unlocked ? "" : "locked"}">${def.label}</div>`;
+      }).join("");
+    }
+
+    function setRewardImage(candidates){
+      if(!resultsRewardImg) return;
+      if(!candidates){
+        resultsRewardImg.style.display = "none";
+        return;
+      }
+      resultsRewardImg.style.display = "block";
+      setImageWithFallback(resultsRewardImg, candidates);
+    }
+
+    function hideSecretEaster(){
+      secretEaster.classList.remove("show");
+    }
+
+    function showSecretEaster(){
+      secretEaster.classList.add("show");
+      setAvatarImage(secretOmeletteImg, secretOmeletteFallback, ASSETS.images.secretOmelette, "🍽️🍳");
+      safePlay(ASSETS.audio.levelComplete);
+    }
+
+    function completeLevel(){
+      stopTimer();
+      safePlay(ASSETS.audio.levelComplete);
+      const lv = levels[currentLevel];
+      resultsModal.classList.add("show");
+      resultsTitle.textContent = `${lv.name} Complete!`;
+      resultsBadge.textContent = lv.badge;
+      setRewardImage(currentLevel >= 5 || totalFirstTryScore >= 10 ? ASSETS.images.masterFarmerBadge : totalFirstTryScore >= 5 ? ASSETS.images.goldenEggBadge : null);
+      const accuracy = totalCompletedOrders ? Math.round((totalFirstTryScore / totalCompletedOrders) * 100) : 0;
+      resultsReport.innerHTML = `
+        First-try points this level: ${currentLevelScore}/${lv.q}<br>
+        Orders completed so far: ${totalCompletedOrders}<br>
+        Total first-try score: ${totalFirstTryScore}<br>
+        Accuracy: ${accuracy}%${currentLevel === 5 ? `<br>Best Level 5 streak: ${level5BestRushStreak}` : ""}
+      `;
+      renderAchievements();
+      if(currentLevel === 5 && level5BestRushStreak >= 7){
+        showSecretEaster();
+        resultsLine.textContent = "Amazing! You unlocked the secret omelette plate!";
+      } else {
+        hideSecretEaster();
+        resultsLine.textContent = currentLevel < 5 ? "Great work! The next breakfast challenge is ready." : "Amazing! Breakfast is saved!";
+      }
+      resultsActions.innerHTML = currentLevel < 5
+        ? `<button class="game-btn btn-check" id="resultsNextBtn" type="button">➡ Next Level</button>`
+        : `<button class="game-btn btn-check" id="finishBtn" type="button">🏁 Final Results</button><button class="game-btn btn-clear" id="replayBtn" type="button">🔁 Replay</button>`;
+
+      const nextBtnLocal = document.getElementById("resultsNextBtn");
+      const finishBtn = document.getElementById("finishBtn");
+      const replayBtn = document.getElementById("replayBtn");
+
+      if(nextBtnLocal){
+        nextBtnLocal.onclick = ()=>{
+          resultsModal.classList.remove("show");
+          hideSecretEaster();
+          startLevel(currentLevel + 1);
+        };
+      }
+      if(finishBtn){
+        finishBtn.onclick = ()=> finishGame(false);
+      }
+      if(replayBtn){
+        replayBtn.onclick = ()=>{
+          resultsModal.classList.remove("show");
+          hideSecretEaster();
+          resetGameFlow();
+        };
+      }
+    }
+
+    function finishGame(timerExpired){
+      stopTimer();
+      safePlay(ASSETS.audio.finalWin);
+      resultsModal.classList.add("show");
+      resultsTitle.textContent = timerExpired ? "Time's Up!" : "Final Results";
+      resultsBadge.textContent = timerExpired ? "Breakfast Rush" : "Master Farmer";
+      setRewardImage(totalFirstTryScore >= 10 ? ASSETS.images.masterFarmerBadge : totalFirstTryScore >= 5 ? ASSETS.images.goldenEggBadge : null);
+      const accuracy = totalCompletedOrders ? Math.round((totalFirstTryScore / totalCompletedOrders) * 100) : 0;
+      resultsReport.innerHTML = `
+        Orders completed: ${totalCompletedOrders}<br>
+        First-try score: ${totalFirstTryScore}<br>
+        Accuracy: ${accuracy}%<br>
+        Best device score: ${getBestScore()}<br>
+        Best streak: ${getBestStreak()}
+      `;
+      renderAchievements();
+      hideSecretEaster();
+      resultsLine.textContent = timerExpired ? "Breakfast rush ended! Great effort!" : "Great work! Breakfast is saved!";
+      resultsActions.innerHTML = `<button class="game-btn btn-clear" id="playAgainBtn" type="button">🔁 Play Again</button>`;
+      document.getElementById("playAgainBtn").onclick = ()=>{
+        resultsModal.classList.remove("show");
+        hideSecretEaster();
+        resetGameFlow();
+      };
+      launchConfetti(80);
+    }
+
+    function nextQuestion(){
+      if(!questionResolved){
+        feedback.className = "feedback";
+        feedback.textContent = "Solve this tray first.";
+        goToStoryStep(2);
+        return;
+      }
+      currentQuestionNumber += 1;
+      loadQuestion();
+    }
+
+    function resetGameFlow(){
+      stopTimer();
+      clearTimeout(memoryTimeout);
+      currentLevel = 1;
+      currentQuestionNumber = 1;
+      currentLevelScore = 0;
+      totalFirstTryScore = 0;
+      totalCompletedOrders = 0;
+      streak = 0;
+      currentQuestion = null;
+      currentDeck = [];
+      questionResolved = false;
+      firstTryOpen = true;
+      selectedAnswer = null;
+      hintShown = false;
+      memoryVisible = true;
+      levelTicketResults = [];
+      unlockedAchievements = new Set();
+      level5RushStreak = 0;
+      level5BestRushStreak = 0;
+      updateTop();
+      startLevel(1);
+    }
+
+    function launchConfetti(count = 40){
+      const colors = ["#ffd76a", "#78b9ff", "#7fd28b", "#ff9c84", "#d7a4ff"];
+      for(let i = 0; i < count; i++){
+        const piece = document.createElement("div");
+        piece.className = "confetti-piece";
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.width = `${6 + Math.random() * 7}px`;
+        piece.style.height = `${10 + Math.random() * 12}px`;
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDuration = `${2.8 + Math.random() * 1.8}s`;
+        piece.style.animationDelay = `${Math.random() * .2}s`;
+        confettiLayer.appendChild(piece);
+        setTimeout(()=> piece.remove(), 5000);
+      }
+    }
+
+    coverStartBtn.addEventListener("click", ()=>{
+      const name = (coverNameInput.value || "Farmer").trim().slice(0,20) || "Farmer";
+      unlockAudio();
+      playOpeningLoop();
+      savePlayerName(name);
+      playerNameText.textContent = name;
+      coverScreen.classList.add("hidden");
+      app.classList.add("show");
+      resetGameFlow();
+    });
+
+    checkBtn.addEventListener("click", checkAnswer);
+    hintBtn.addEventListener("click", showHint);
+    clearBtn.addEventListener("click", clearSelection);
+    nextBtn.addEventListener("click", nextQuestion);
+
+    storyPills.forEach(btn=>{
+      btn.addEventListener("click", ()=> goToStoryStep(Number(btn.dataset.step)));
+    });
+
+    storyPrevBtn.addEventListener("click", ()=>{
+      if(storyStep > 1) goToStoryStep(storyStep - 1);
+    });
+
+    storyNextBtn.addEventListener("click", ()=>{
+      if(storyStep === 1){
+        goToStoryStep(2);
+        return;
+      }
+      if(storyStep === 2){
+        if(questionResolved){
+          goToStoryStep(3);
+        } else {
+          feedback.className = "feedback";
+          feedback.textContent = "Choose an answer and press Check first.";
+        }
+        return;
+      }
+      if(questionResolved){
+        nextQuestion();
+      } else {
+        goToStoryStep(2);
+      }
+    });
+
+    soundToggleBtn.addEventListener("click", ()=>{
+      soundOn = !soundOn;
+      soundToggleBtn.textContent = soundOn ? "🔊 Sound" : "🔇 Sound";
+      unlockAudio();
+      if(soundOn){
+        if(app.classList.contains("show") && levelIntroModal.classList.contains("show")){
+          playOpeningLoop();
+        }
+      } else {
+        stopOpeningLoop();
+      }
+    });
+
+    gameInfoBtn.addEventListener("click", ()=> gameInfoModal.classList.add("show"));
+    frameInfoBtn.addEventListener("click", ()=> gameInfoModal.classList.add("show"));
+    closeGameInfoBtn.addEventListener("click", ()=> gameInfoModal.classList.remove("show"));
+
+    changeUserBtn.addEventListener("click", ()=>{
+      playerNameInput.value = getPlayerName();
+      nameModal.classList.add("show");
+    });
+
+    saveNameBtn.addEventListener("click", ()=>{
+      const name = (playerNameInput.value || "Farmer").trim().slice(0,20) || "Farmer";
+      savePlayerName(name);
+      playerNameText.textContent = name;
+      coverNameInput.value = name;
+      nameModal.classList.remove("show");
+      updateTop();
+    });
+
+    restartBtn.addEventListener("click", ()=>{
+      if(confirm("Restart the whole game?")){
+        resetGameFlow();
+      }
+    });
+
+    startLevelBtn.addEventListener("click", ()=>{
+      stopOpeningLoop();
+      levelIntroModal.classList.remove("show");
+      if(levels[currentLevel].timer){
+        startTimer();
+      } else {
+        stopTimer();
+      }
+      loadQuestion();
+    });
+
+    window.addEventListener("pointerdown", unlockAudio, { once:true });
+    window.addEventListener("touchstart", unlockAudio, { once:true, passive:true });
+    window.addEventListener("keydown", unlockAudio, { once:true });
+
+    window.addEventListener("resize", syncViewportHeight);
+    window.addEventListener("orientationchange", syncViewportHeight);
+    if(window.visualViewport){
+      window.visualViewport.addEventListener("resize", syncViewportHeight);
+      window.visualViewport.addEventListener("scroll", syncViewportHeight);
+    }
+
+    renderCoverTray();
+    syncViewportHeight();
+    playerNameText.textContent = getPlayerName();
+    coverNameInput.value = getPlayerName() === "Farmer" ? "" : getPlayerName();
+    bestScoreText.textContent = getBestScore();
+    bestStreakText.textContent = getBestStreak();
+    renderAnswerButtons();
+    updateTop();
+    goToStoryStep(1);
+
+    setAvatarImage(coverChefImg, coverChefFallback, ASSETS.images.chefNeutral, "👩‍🍳");
+    setAvatarImage(coverFarmerImg, coverFarmerFallback, ASSETS.images.farmerNeutral, "🧑‍🌾");
+    setImageWithFallback(preloadTrayFull, ASSETS.images.eggTrayFull);
+    setImageWithFallback(preloadTrayEmpty, ASSETS.images.eggTrayEmpty);
+    setImageWithFallback(preloadGoldenEgg, ASSETS.images.goldenEggBadge);
+    setImageWithFallback(preloadMasterFarmer, ASSETS.images.masterFarmerBadge);
+    setImageWithFallback(preloadSecretOmelette, ASSETS.images.secretOmelette);
+    setImageWithFallback(preloadHappyCustomer1, ASSETS.images.happyCustomer1);
+    setImageWithFallback(preloadHappyCustomer2, ASSETS.images.happyCustomer2);
+    setImageWithFallback(preloadHappyCustomer3, ASSETS.images.happyCustomer3);
+    setImageWithFallback(preloadHappyCustomer4, ASSETS.images.happyCustomer4);
+    setImageWithFallback(preloadHappyCustomer5, ASSETS.images.happyCustomer5);
+    applyBackgroundWithFallback(coverArt, ASSETS.images.kitchenBg, "linear-gradient(180deg,#8fd1ff,#d7f4ff 62%, #fff9dc 100%)");
+    applyBackgroundWithFallback(deliveryFrameMain, ASSETS.images.kitchenBg);
+    applyBackgroundWithFallback(document.querySelector('#frame1 .frame-main'), ASSETS.images.kitchenBg);
+    applyBackgroundWithFallback(document.querySelector('#frame2 .frame-main'), ASSETS.images.kitchenBg);
+    setDeliveryState("ready", `<div class="bubble-copy"><div class="bubble-line">Chef says: Let's fill a tray to 10!</div></div>`);
+  </script>
+</body>
+</html>
